@@ -1,6 +1,6 @@
 {
   "name": "claude-cheatsheet",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog and local web dashboard",
   "author": {
     "name": "KlausiMagJeder"
