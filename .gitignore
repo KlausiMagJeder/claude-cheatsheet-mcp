@@ -1,5 +1,4 @@
 node_modules/
-dist/
 *.js.map
 *.log
 
@@ -22,4 +21,7 @@ coverage/
 
 # Project-internal plans (contain absolute user paths, not for public repo)
 .claude/plans/
-!/ideen.md
+/CLAUDE.md
+/ideen.md
+/.config/tag-overrides.json
+/.config/workflow.json
