@@ -1,0 +1,27 @@
+{
+  "name": "claude-cheatsheet",
+  "owner": {
+    "name": "KlausiMagJeder"
+  },
+  "metadata": {
+    "description": "Solo marketplace for claude-cheatsheet — MCP server that catalogs installed Claude Code skills, commands, agents, hooks, and MCP tools.",
+    "version": "0.3.1"
+  },
+  "plugins": [
+    {
+      "name": "claude-cheatsheet",
+      "source": "./",
+      "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog and local web dashboard.",
+      "category": "discovery",
+      "tags": [
+        "catalog",
+        "discovery",
+        "skills",
+        "commands",
+        "agents",
+        "mcp",
+        "dashboard"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+*.js.map
+*.log
+
+# OS
+.DS_Store
+
+# Editors / IDEs
+.idea/
+.vscode/
+
+# Test coverage
+coverage/
+
+# Env files (never commit secrets)
+.env
+.env.*
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Project-internal plans (contain absolute user paths, not for public repo)
+.claude/plans/
+!/ideen.md

@@ -1,0 +1,55 @@
+{
+  "name": "claude-cheatsheet-mcp",
+  "version": "0.3.1",
+  "description": "MCP server that catalogs all installed Claude Code skills, commands, agents, and tools",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.mjs",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "author": "KlausiMagJeder",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KlausiMagJeder/claude-cheatsheet-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/issues"
+  },
+  "homepage": "https://github.com/KlausiMagJeder/claude-cheatsheet-mcp#readme",
+  "keywords": [
+    "claude-code",
+    "mcp",
+    "mcp-server",
+    "claude-cheatsheet",
+    "plugin",
+    "typescript"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "glob": "^11.0.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.3.0",
+    "eslint": "^9.18.0",
+    "typescript-eslint": "^8.20.0",
+    "prettier": "^3.4.0",
+    "eslint-config-prettier": "^9.1.0"
+  }
+}

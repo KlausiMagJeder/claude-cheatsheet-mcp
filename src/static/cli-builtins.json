@@ -1,0 +1,18 @@
+[
+  { "name": "/help", "description": "Hilfe anzeigen" },
+  { "name": "/clear", "description": "Konversation leeren" },
+  { "name": "/compact", "description": "Kontext komprimieren" },
+  { "name": "/cost", "description": "Kosten der Session anzeigen" },
+  { "name": "/login", "description": "Authentifizierung" },
+  { "name": "/logout", "description": "Abmelden" },
+  { "name": "/stats", "description": "Session-Statistiken" },
+  { "name": "/usage", "description": "Token-Nutzung anzeigen" },
+  { "name": "/fast", "description": "Fast-Mode toggle (gleicher Opus, schnellerer Output)" },
+  { "name": "/vim", "description": "Vim-Mode toggle" },
+  { "name": "/model", "description": "Modell wechseln" },
+  { "name": "/memory", "description": "Memory-Einstellungen" },
+  { "name": "/permissions", "description": "Berechtigungen verwalten" },
+  { "name": "/terminal-setup", "description": "Terminal-Setup (Shift+Enter etc.)" },
+  { "name": "/config", "description": "Konfiguration bearbeiten" },
+  { "name": "/mcp", "description": "MCP-Server verwalten" }
+]
