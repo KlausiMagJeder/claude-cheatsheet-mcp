@@ -37,8 +37,8 @@ jobs:
       - name: Type check (tsc --noEmit)
         run: npx tsc --noEmit
 
-      - name: Test (Jest)
-        run: npm test
-
       - name: Build
         run: npm run build
+
+      - name: Test (Jest)
+        run: npm test
