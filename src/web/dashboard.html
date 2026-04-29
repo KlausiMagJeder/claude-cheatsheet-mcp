@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+  <title>Claude Cheatsheet</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --text: #e6edf3;
+      /* B1-Fix (UI/UX-Blocker): Neuer Token fuer Badges/Tags.
+         --text-muted #8b949e auf bg-tertiary #21262d ergibt 3.85:1 (FAIL WCAG AA).
+         --text-secondary #c9d1d9 ergibt 7.8:1 (AAA). */
+      --text-secondary: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --border: #30363d;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --red: #f85149;
+      --violet: #bc8cff;
+      --orange: #f0883e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* B2-Fix (UI/UX-Blocker): Globale sichtbare Focus-States fuer Keyboard-User.
+       outline-offset: 2px vermeidet Kollision mit bestehender Border. */
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: inherit;
+    }
+    :focus:not(:focus-visible) { outline: none; }
+
+    /* Skip-Link (Keyboard-User springen zur Liste) */
+    .skip-link {
+      position: absolute;
+      left: -10000px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    .skip-link:focus {
+      left: 16px;
+      top: 16px;
+      width: auto;
+      height: auto;
+      padding: 8px 12px;
+      background: var(--accent);
+      color: var(--bg);
+      border-radius: 4px;
+      z-index: 1000;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    header h1 { font-size: 20px; font-weight: 600; }
+    .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex-wrap: wrap;
+    }
+    .stats span { color: var(--accent); font-weight: 600; }
+
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    /* Suggest-Box */
+    .suggest-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .suggest-box h2 { font-size: 16px; margin-bottom: 12px; }
+    .suggest-input {
+      display: flex;
+      gap: 8px;
+    }
+    .suggest-input input {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .suggest-input input:focus { border-color: var(--accent); }
+    .suggest-input button {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .suggest-input button:hover { background: var(--accent-hover); }
+    .suggest-input button:active { transform: scale(0.98); transition: transform 60ms; }
+
+    .suggest-results {
+      margin-top: 16px;
+      display: none;
+    }
+    .suggest-results.active { display: block; }
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      background: var(--bg);
+      margin-bottom: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .suggestion-item:hover { background: var(--bg-tertiary); border-color: var(--border); }
+
+    .relevance-bar {
+      width: 40px;
+      height: 6px;
+      background: var(--bg-tertiary);
+      border-radius: 3px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .relevance-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 3px;
+    }
+    .suggestion-name { font-weight: 600; font-size: 14px; }
+    .suggestion-reason { font-size: 12px; color: var(--text-secondary); }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .filter-btn {
+      padding: 6px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .filter-btn:hover { border-color: var(--text-secondary); }
+    .filter-btn.active,
+    .filter-btn[aria-pressed="true"] {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    /* Entry-Liste */
+    .entry-list { display: flex; flex-direction: column; gap: 4px; }
+    .entry-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .entry-item:hover { border-color: var(--accent); }
+
+    .entry-kind {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--bg-tertiary);
+      /* B1-Fix: war --text-muted (3.85:1 FAIL) — jetzt --text-secondary (7.8:1 AAA) */
+      color: var(--text-secondary);
+      min-width: 80px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .entry-kind.skill { color: var(--accent); }
+    .entry-kind.command { color: var(--green); }
+    .entry-kind.agent { color: var(--yellow); }
+    .entry-kind.mcp_tool { color: var(--red); }
+    .entry-kind.hook { color: var(--violet); }
+    .entry-kind.role { color: var(--orange); }
+    .entry-kind.cli_command { color: var(--accent-hover); }
+
+    .entry-name { font-weight: 600; font-size: 14px; min-width: 240px; }
+    .entry-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .entry-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tag {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--bg-tertiary);
+      /* B1-Fix: AAA-Kontrast auf bg-tertiary */
+      color: var(--text-secondary);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    /* Detail-Panel */
+    .detail-panel {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 500px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 24px;
+      z-index: 100;
+    }
+    .detail-panel.open { display: block; }
+    .detail-close {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .detail-close:hover { color: var(--text); background: var(--bg-tertiary); }
+    .detail-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .detail-meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.8;
+    }
+    .detail-meta strong { color: var(--text); }
+    .detail-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 60vh;
+      color: var(--text);
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 99;
+    }
+    .overlay.open { display: block; }
+
+    /* Error-Banner */
+    .error-banner {
+      background: var(--red);
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    .error-banner.active { display: block; }
+
+    /* Responsive: F4 Stats-Wrap, F5 Panel full-width, Filter/Entry stack */
+    @media (max-width: 640px) {
+      main { padding: 16px; }
+      .detail-panel { width: 100vw; padding: 16px; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .search-input { min-width: 0; width: 100%; }
+      .entry-item { flex-wrap: wrap; }
+      .entry-name { min-width: 0; }
+      .entry-desc { white-space: normal; }
+    }
+
+    /* F1 Prefers-reduced-motion */
+    @media (prefers-color-scheme: no-preference) {}
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#entry-list">Zur Liste springen</a>
+
+  <header>
+    <h1>Claude Cheatsheet</h1>
+    <div class="stats" id="stats" aria-live="polite"></div>
+  </header>
+
+  <main id="main">
+    <div class="error-banner" id="error-banner" role="alert"></div>
+
+    <section class="suggest-box" aria-labelledby="suggest-heading">
+      <h2 id="suggest-heading">Was moechtest du tun?</h2>
+      <div class="suggest-input">
+        <input
+          type="text"
+          id="suggest-input"
+          placeholder="z.B. PR reviewen, Bug fixen, Feature planen..."
+          aria-label="Aufgabe beschreiben"
+          autocomplete="off"
+        >
+        <button type="button" id="suggest-btn">Suggest</button>
+      </div>
+      <div
+        class="suggest-results"
+        id="suggest-results"
+        role="region"
+        aria-label="Vorschlaege"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <section class="controls" aria-label="Filter und Suche">
+      <input
+        type="text"
+        class="search-input"
+        id="search-input"
+        placeholder="Suche..."
+        aria-label="Eintraege durchsuchen"
+        autocomplete="off"
+      >
+      <button type="button" class="filter-btn active" data-kind="all" aria-pressed="true">Alle</button>
+      <button type="button" class="filter-btn" data-kind="skill" aria-pressed="false">Skills</button>
+      <button type="button" class="filter-btn" data-kind="command" aria-pressed="false">Commands</button>
+      <button type="button" class="filter-btn" data-kind="agent" aria-pressed="false">Agents</button>
+      <button type="button" class="filter-btn" data-kind="mcp_tool" aria-pressed="false">MCP</button>
+      <button type="button" class="filter-btn" data-kind="hook" aria-pressed="false">Hooks</button>
+      <button type="button" class="filter-btn" data-kind="role" aria-pressed="false">Roles</button>
+      <button type="button" class="filter-btn" data-kind="cli_command" aria-pressed="false">CLI</button>
+    </section>
+
+    <section
+      class="entry-list"
+      id="entry-list"
+      aria-label="Eintraege"
+      aria-live="polite"
+    ></section>
+  </main>
+
+  <div
+    class="overlay"
+    id="overlay"
+    aria-hidden="true"
+  ></div>
+
+  <aside
+    class="detail-panel"
+    id="detail-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="detail-title"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <button
+      type="button"
+      class="detail-close"
+      id="detail-close"
+      aria-label="Detail-Panel schliessen"
+    >&times;</button>
+    <div id="detail-content"></div>
+  </aside>
+
+  <script>
+    'use strict';
+
+    /* ------------------------------------------------------------------ *
+     * XSS-Escape-Helper (Pflicht gem. Rolle v2.2 / Bedarfsanalyse W3)
+     * Alle interpolierten Werte (name, description, tags, source,
+     * filePath, id, content, reason, kind, scope) laufen durch escHtml.
+     * ------------------------------------------------------------------ */
+    function escHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* State                                                              */
+    /* ------------------------------------------------------------------ */
+    let allEntries = [];
+    let currentFilter = 'all';
+    let searchTimer = null;
+    let lastTriggerElement = null;
+
+    /* ------------------------------------------------------------------ */
+    /* DOM-Refs                                                           */
+    /* ------------------------------------------------------------------ */
+    const $stats = document.getElementById('stats');
+    const $entryList = document.getElementById('entry-list');
+    const $searchInput = document.getElementById('search-input');
+    const $suggestInput = document.getElementById('suggest-input');
+    const $suggestResults = document.getElementById('suggest-results');
+    const $suggestBtn = document.getElementById('suggest-btn');
+    const $detailPanel = document.getElementById('detail-panel');
+    const $detailContent = document.getElementById('detail-content');
+    const $detailClose = document.getElementById('detail-close');
+    const $overlay = document.getElementById('overlay');
+    const $errorBanner = document.getElementById('error-banner');
+
+    /* ------------------------------------------------------------------ */
+    /* Error-UI                                                           */
+    /* ------------------------------------------------------------------ */
+    function showError(message) {
+      $errorBanner.textContent = message;
+      $errorBanner.classList.add('active');
+    }
+    function clearError() {
+      $errorBanner.classList.remove('active');
+      $errorBanner.textContent = '';
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Init                                                               */
+    /* ------------------------------------------------------------------ */
+    async function init() {
+      try {
+        const [entriesRes, statsRes] = await Promise.all([
+          fetch('/api/entries'),
+          fetch('/api/stats'),
+        ]);
+        if (!entriesRes.ok) throw new Error('Eintraege konnten nicht geladen werden (' + entriesRes.status + ')');
+        if (!statsRes.ok) throw new Error('Stats konnten nicht geladen werden (' + statsRes.status + ')');
+        const entries = await entriesRes.json();
+        const stats = await statsRes.json();
+        allEntries = Array.isArray(entries) ? entries : [];
+        renderStats(stats);
+        renderEntries(allEntries);
+        clearError();
+      } catch (err) {
+        showError('Fehler beim Laden: ' + (err && err.message ? err.message : String(err)));
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Render: Stats                                                       */
+    /* ------------------------------------------------------------------ */
+    function renderStats(stats) {
+      if (!stats || typeof stats !== 'object') {
+        $stats.textContent = '';
+        return;
+      }
+      const total = typeof stats.total === 'number' ? stats.total : 0;
+      const byKind = stats.byKind && typeof stats.byKind === 'object' ? stats.byKind : {};
+      const parts = Object.keys(byKind).map((k) => {
+        return escHtml(k) + ': <span>' + escHtml(byKind[k]) + '</span>';
+      });
+      let html = 'Total: <span>' + escHtml(total) + '</span>';
+      if (parts.length > 0) html += ' | ' + parts.join(' | ');
+      $stats.innerHTML = html;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Render: Entries                                                     */
+    /* ------------------------------------------------------------------ */
+    function renderEntries(entries) {
+      if (!entries || entries.length === 0) {
+        $entryList.innerHTML = '<div class="empty-state">Keine Eintraege gefunden.</div>';
+        return;
+      }
+      const html = entries.map((e) => {
+        const kind = e && e.kind ? e.kind : (e && e.id ? String(e.id).split(':')[0] : 'unknown');
+        const name = e && e.name ? e.name : '';
+        const desc = e && e.description ? String(e.description).slice(0, 140) : '';
+        const tags = Array.isArray(e && e.tags) ? e.tags : [];
+        const id = e && e.id ? e.id : '';
+        const tagsHtml = tags.map((t) => '<span class="tag">' + escHtml(t) + '</span>').join('');
+        return (
+          '<article class="entry-item" role="button" tabindex="0"' +
+          ' data-id="' + escHtml(id) + '"' +
+          ' aria-label="Details fuer ' + escHtml(name) + ' oeffnen">' +
+            '<div class="entry-kind ' + escHtml(kind) + '">' + escHtml(kind) + '</div>' +
+            '<div class="entry-name">' + escHtml(name) + '</div>' +
+            '<div class="entry-desc">' + escHtml(desc) + '</div>' +
+            '<div class="entry-tags">' + tagsHtml + '</div>' +
+          '</article>'
+        );
+      }).join('');
+      $entryList.innerHTML = html;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Filter / Search                                                     */
+    /* ------------------------------------------------------------------ */
+    function setFilter(kind) {
+      currentFilter = kind;
+      document.querySelectorAll('.filter-btn').forEach((btn) => {
+        const active = btn.dataset.kind === kind;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = $searchInput.value.trim().toLowerCase();
+      let filtered = allEntries;
+      if (currentFilter !== 'all') {
+        filtered = filtered.filter((e) => {
+          const kind = e && e.kind ? e.kind : (e && e.id ? String(e.id).split(':')[0] : '');
+          return kind === currentFilter;
+        });
+      }
+      if (q) {
+        filtered = filtered.filter((e) => {
+          const name = e && e.name ? String(e.name) : '';
+          const desc = e && e.description ? String(e.description) : '';
+          const tags = Array.isArray(e && e.tags) ? e.tags.join(' ') : '';
+          return (name + ' ' + desc + ' ' + tags).toLowerCase().includes(q);
+        });
+      }
+      renderEntries(filtered);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Suggest                                                             */
+    /* ------------------------------------------------------------------ */
+    async function runSuggest() {
+      const task = $suggestInput.value.trim();
+      if (!task) return;
+      try {
+        const res = await fetch('/api/suggest?task=' + encodeURIComponent(task));
+        if (!res.ok) throw new Error('Suggest fehlgeschlagen (' + res.status + ')');
+        const results = await res.json();
+        $suggestResults.classList.add('active');
+        if (!Array.isArray(results) || results.length === 0) {
+          $suggestResults.innerHTML =
+            '<p style="color:var(--text-secondary);padding:8px">Keine Vorschlaege gefunden.</p>';
+          return;
+        }
+        const html = results.map((s) => {
+          const entry = s && s.entry ? s.entry : {};
+          const name = entry.name ? entry.name : '';
+          const id = entry.id ? entry.id : '';
+          const reason = s && s.reason ? s.reason : '';
+          const rel = s && typeof s.relevance === 'number' ? s.relevance : 0;
+          const relPct = Math.max(0, Math.min(100, Math.round(rel * 100)));
+          return (
+            '<div class="suggestion-item" role="button" tabindex="0"' +
+            ' data-id="' + escHtml(id) + '"' +
+            ' aria-label="Details fuer ' + escHtml(name) + ' oeffnen">' +
+              '<div class="relevance-bar" role="progressbar"' +
+              ' aria-valuenow="' + relPct + '" aria-valuemin="0" aria-valuemax="100">' +
+                '<div class="relevance-bar-fill" style="width:' + relPct + '%"></div>' +
+              '</div>' +
+              '<div>' +
+                '<div class="suggestion-name">' + escHtml(name) + '</div>' +
+                '<div class="suggestion-reason">' + escHtml(reason) + ' (' + relPct + '%)</div>' +
+              '</div>' +
+            '</div>'
+          );
+        }).join('');
+        $suggestResults.innerHTML = html;
+      } catch (err) {
+        showError('Suggest-Fehler: ' + (err && err.message ? err.message : String(err)));
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Detail-Panel (B3: Dialog mit Focus-Trap + Focus-Save/Restore)      */
+    /* ------------------------------------------------------------------ */
+    async function showDetail(id) {
+      if (!id) return;
+      try {
+        const res = await fetch('/api/entry/' + encodeURIComponent(id));
+        if (!res.ok) throw new Error('Detail fehlgeschlagen (' + res.status + ')');
+        const data = await res.json();
+        if (data && data.error) throw new Error(String(data.error));
+        renderDetail(data);
+        openDetail();
+      } catch (err) {
+        showError('Detail-Fehler: ' + (err && err.message ? err.message : String(err)));
+      }
+    }
+
+    function renderDetail(data) {
+      const entry = data && data.entry ? data.entry : {};
+      const name = entry.name ? entry.name : '';
+      const kind = entry.kind ? entry.kind : '';
+      const scope = entry.scope ? entry.scope : '';
+      const source = entry.source ? entry.source : '';
+      const id = entry.id ? entry.id : '';
+      const filePath = entry.filePath ? entry.filePath : '';
+      const tags = Array.isArray(entry.tags) ? entry.tags : [];
+      const content = data && data.content != null ? data.content : '';
+      const contentStr = typeof content === 'string'
+        ? content
+        : JSON.stringify(content, null, 2);
+
+      const tagsHtml = tags.map((t) => '<span class="tag">' + escHtml(t) + '</span>').join(' ');
+      const fileRow = filePath
+        ? '<br><strong>File:</strong> ' + escHtml(filePath)
+        : '';
+      const contentBlock = contentStr
+        ? '<div class="detail-content">' + escHtml(contentStr) + '</div>'
+        : '';
+
+      $detailContent.innerHTML =
+        '<div class="detail-title" id="detail-title">' + escHtml(name) + '</div>' +
+        '<div class="detail-meta">' +
+          '<strong>Kind:</strong> ' + escHtml(kind) + ' | ' +
+          '<strong>Scope:</strong> ' + escHtml(scope) + ' | ' +
+          '<strong>Source:</strong> ' + escHtml(source) + '<br>' +
+          '<strong>Tags:</strong> ' + (tagsHtml || '<em>keine</em>') + '<br>' +
+          '<strong>ID:</strong> ' + escHtml(id) +
+          fileRow +
+        '</div>' +
+        contentBlock;
+    }
+
+    function openDetail() {
+      lastTriggerElement = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+      $detailPanel.classList.add('open');
+      $detailPanel.setAttribute('aria-hidden', 'false');
+      $overlay.classList.add('open');
+      $overlay.setAttribute('aria-hidden', 'false');
+      // Focus auf Close-Button (erstes fokussierbares Element im Dialog)
+      setTimeout(() => { $detailClose.focus(); }, 0);
+    }
+
+    function closeDetail() {
+      if (!$detailPanel.classList.contains('open')) return;
+      $detailPanel.classList.remove('open');
+      $detailPanel.setAttribute('aria-hidden', 'true');
+      $overlay.classList.remove('open');
+      $overlay.setAttribute('aria-hidden', 'true');
+      if (lastTriggerElement && typeof lastTriggerElement.focus === 'function') {
+        lastTriggerElement.focus();
+      }
+      lastTriggerElement = null;
+    }
+
+    /* Focus-Trap: Tab/Shift-Tab bleibt innerhalb des offenen Panels */
+    function getFocusable(container) {
+      const selector = [
+        'button:not([disabled])',
+        'a[href]',
+        'input:not([disabled])',
+        'textarea:not([disabled])',
+        'select:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+      ].join(',');
+      return Array.from(container.querySelectorAll(selector)).filter((el) => {
+        return el.offsetParent !== null || el === document.activeElement;
+      });
+    }
+
+    function trapFocus(e) {
+      if (!$detailPanel.classList.contains('open')) return;
+      if (e.key !== 'Tab') return;
+      const focusables = getFocusable($detailPanel);
+      if (focusables.length === 0) {
+        e.preventDefault();
+        $detailClose.focus();
+        return;
+      }
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first || !$detailPanel.contains(document.activeElement)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Event-Wiring                                                        */
+    /* ------------------------------------------------------------------ */
+
+    // Filter-Buttons (Event-Delegation)
+    document.querySelector('.controls').addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      setFilter(btn.dataset.kind);
+    });
+
+    // Entry-Liste Click/Keyboard (Event-Delegation)
+    $entryList.addEventListener('click', (e) => {
+      const item = e.target.closest('.entry-item');
+      if (!item) return;
+      showDetail(item.dataset.id);
+    });
+    $entryList.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const item = e.target.closest('.entry-item');
+      if (!item) return;
+      e.preventDefault();
+      showDetail(item.dataset.id);
+    });
+
+    // Suggest-Results Click/Keyboard (Event-Delegation)
+    $suggestResults.addEventListener('click', (e) => {
+      const item = e.target.closest('.suggestion-item');
+      if (!item) return;
+      showDetail(item.dataset.id);
+    });
+    $suggestResults.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const item = e.target.closest('.suggestion-item');
+      if (!item) return;
+      e.preventDefault();
+      showDetail(item.dataset.id);
+    });
+
+    // Search mit Debounce (F7)
+    $searchInput.addEventListener('input', () => {
+      if (searchTimer) clearTimeout(searchTimer);
+      searchTimer = setTimeout(applyFilters, 150);
+    });
+
+    // Suggest-Trigger
+    $suggestBtn.addEventListener('click', runSuggest);
+    $suggestInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runSuggest();
+      }
+    });
+
+    // Detail-Close + Overlay
+    $detailClose.addEventListener('click', closeDetail);
+    $overlay.addEventListener('click', closeDetail);
+
+    // Keyboard: Escape schliesst Panel, Tab bleibt getrapped
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetail();
+        return;
+      }
+      trapFocus(e);
+    });
+
+    // Start
+    init();
+  </script>
+</body>
+</html>

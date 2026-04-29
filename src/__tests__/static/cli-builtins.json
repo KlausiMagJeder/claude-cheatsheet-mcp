@@ -1,0 +1,4 @@
+[
+  { "name": "/help", "description": "Show help" },
+  { "name": "/clear", "description": "Clear conversation" }
+]

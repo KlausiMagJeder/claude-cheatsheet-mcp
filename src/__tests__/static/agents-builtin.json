@@ -1,0 +1,27 @@
+[
+  {
+    "name": "general-purpose",
+    "description": "Allzweck-Agent fuer Recherche, Code-Suche, Multi-Step-Tasks",
+    "plugin": null
+  },
+  {
+    "name": "Explore",
+    "description": "Schnelle Codebase-Exploration (Glob, Grep, Read)",
+    "plugin": null
+  },
+  {
+    "name": "Plan",
+    "description": "Software-Architekt fuer Implementierungsplaene",
+    "plugin": null
+  },
+  {
+    "name": "statusline-setup",
+    "description": "Konfiguriert die Claude Code Statusleiste",
+    "plugin": null
+  },
+  {
+    "name": "claude-code-guide",
+    "description": "Beantwortet Fragen zu Claude Code, Agent SDK, Claude API",
+    "plugin": null
+  }
+]
