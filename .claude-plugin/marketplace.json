@@ -4,14 +4,14 @@
     "name": "KlausiMagJeder"
   },
   "metadata": {
-    "description": "Solo marketplace for claude-cheatsheet — MCP server that catalogs installed Claude Code skills, commands, agents, hooks, and MCP tools.",
-    "version": "0.3.2"
+    "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog, slash commands (/cheatsheet, /cs-*), a discovery skill, and a local web dashboard.",
+    "version": "0.4.0"
   },
   "plugins": [
     {
       "name": "claude-cheatsheet",
       "source": "./",
-      "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog and local web dashboard.",
+      "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog, slash commands (/cheatsheet, /cs-*), a discovery skill, and a local web dashboard.",
       "category": "discovery",
       "tags": [
         "catalog",
@@ -20,7 +20,9 @@
         "commands",
         "agents",
         "mcp",
-        "dashboard"
+        "dashboard",
+        "skill",
+        "slash-commands"
       ]
     }
   ]

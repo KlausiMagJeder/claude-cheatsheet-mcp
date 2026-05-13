@@ -21,6 +21,7 @@ coverage/
 
 # Project-internal plans (contain absolute user paths, not for public repo)
 .claude/plans/
+**/.jarvis-mode
 /CLAUDE.md
 /ideen.md
 /.config/tag-overrides.json
