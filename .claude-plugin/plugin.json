@@ -1,7 +1,7 @@
 {
   "name": "claude-cheatsheet",
-  "version": "0.3.2",
-  "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog and local web dashboard",
+  "version": "0.4.0",
+  "description": "Browse and search all installed Claude Code skills, commands, agents, hooks, and MCP tools via a queryable catalog, slash commands (/cheatsheet, /cs-*), a discovery skill, and a local web dashboard",
   "author": {
     "name": "KlausiMagJeder"
   },

@@ -1,6 +1,6 @@
 {
   "name": "claude-cheatsheet-mcp",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "MCP server that catalogs all installed Claude Code skills, commands, agents, and tools",
   "type": "module",
   "main": "dist/index.js",

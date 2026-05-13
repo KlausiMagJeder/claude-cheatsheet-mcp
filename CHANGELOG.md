@@ -6,6 +6,16 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-12
+
+### Added
+- **Plugin-Skill `cheatsheet`** (`skills/cheatsheet/SKILL.md`): LLM-Auto-Trigger für Discovery-Fragen ("what skills do I have?", "is there a tool for X?"). Routet via Tool-Routing-Tabelle im Body auf alle 13 MCP-Tools.
+- **Slash-Command `/cheatsheet <task>`** (`commands/cheatsheet.md`): Top-Level-Convenience für intent-orientierte Suggestions. Routet auf `suggest`.
+- **Slash-Command `/cs-search <keywords>`** (`commands/cs-search.md`): Expliziter Wrapper für `search` (literaler Keyword-Match).
+- **Slash-Command `/cs-suggest <task>`** (`commands/cs-suggest.md`): Expliziter Wrapper für `suggest` (intent-orientiert).
+- **Slash-Command `/cs-stats`** (`commands/cs-stats.md`): Argumentloser Wrapper für `get_stats` (Inventur-Übersicht).
+- Neuer Test `src/__tests__/asset-shipping.test.ts`: validiert Skill- und Command-Asset-Existenz, Frontmatter-Konsistenz (parametrisiert über alle 4 Commands) sowie 4-Stellen-Versions-Sync (package.json, plugin.json, marketplace.json metadata.version, README badge).
+
 ## [0.3.2] - 2026-04-29
 
 ### Changed
@@ -52,7 +62,8 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 - **Lokales Web-Dashboard** auf `http://127.0.0.1:37778` mit Suche, Kategorie-Filter, Suggest-Ranking und Detail-View.
 - **Register-Script** `scripts/register.sh` mit atomarem Edit, Backup, Parse-Validation und Auto-Rollback.
 
-[Unreleased]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.2.0...v0.3.0

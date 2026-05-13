@@ -4,7 +4,7 @@ A Claude Code plugin that catalogs every installed skill, command, agent, hook, 
 
 [![CI](https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.2-blue.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](./package.json)
 
 ## Install
 
@@ -59,6 +59,8 @@ claude-cheatsheet scans your full Claude Code environment and exposes the result
 | What you get | How you use it |
 |--------------|----------------|
 | **13 MCP tools** | Query the catalog from inside Claude Code (`list_skills`, `search`, `suggest`, …) |
+| **Plugin skill `cheatsheet`** | Auto-triggers on discovery questions ("what skills do I have?", "is there a tool for X?") and routes to the right catalog tool |
+| **Slash commands** | `/cheatsheet`, `/cs-search`, `/cs-suggest`, `/cs-stats` — deterministic, tab-completable power-user entry points |
 | **Web dashboard** | Browse the same catalog in your browser at `http://127.0.0.1:37778` |
 | **Auto-tagging** | Keyword-based tags so related entries surface together |
 | **Plugin discovery** | Empirically verified across 4 plugin layouts plus `installed_plugins.json` |
@@ -103,6 +105,23 @@ refresh()
 
 The remaining tools are `get_workflows` (curated workflow templates) and a handful of category-specific listers.
 
+### Slash commands
+
+For deterministic, tab-completable access to the catalog, the plugin ships four slash commands:
+
+| Command | What it does |
+|---------|--------------|
+| `/cheatsheet <task description>` | Top-level convenience, routes to `suggest`. Example: `/cheatsheet review pr` |
+| `/cs-search <keywords>` | Explicit wrapper for `search` (literal keyword match) |
+| `/cs-suggest <task description>` | Explicit wrapper for `suggest` (intent-oriented) |
+| `/cs-stats` | Argumentless wrapper for `get_stats` (catalog inventory overview) |
+
+Prefer the slash commands over plain natural-language prompts when you want a guaranteed, deterministic invocation — they bypass the LLM's tool-routing step. Useful for tab-completion, scripting, and shared team muscle memory.
+
+### Skill
+
+The plugin also installs a `cheatsheet` skill (`skills/cheatsheet/SKILL.md`). Claude Code auto-activates it whenever the user asks a discovery question — "what skills do I have?", "is there a tool for X?", "list my agents" — and routes to the appropriate MCP tool via the routing table inside the skill body. This sits parallel to the slash commands (deterministic, user-driven) and the raw MCP tools (LLM-driven, model-routed): same catalog, three entry points.
+
 ### Web dashboard
 
 The plugin also starts a local HTTP server with full-text search, category filters, suggest ranking, and a detail view:
@@ -128,7 +147,7 @@ CHEATSHEET_WEB_DISABLED=1 node dist/index.js
 
 ### User content
 
-`src/static/workflows.json` and `src/static/tag-overrides.json` ship intentionally empty (`[]` / `{}`) so the plugin makes no assumptions about your specific setup. A user-config override mechanism (read path: `~/.config/claude-cheatsheet-mcp/`) is planned for v0.4.0. Until then, edit the bundled files directly if you want custom workflows or tag mappings.
+`src/static/workflows.json` and `src/static/tag-overrides.json` ship intentionally empty (`[]` / `{}`) so the plugin makes no assumptions about your specific setup. A user-config override mechanism (read path: `~/.config/claude-cheatsheet-mcp/`) is planned for a future release. Until then, edit the bundled files directly if you want custom workflows or tag mappings.
 
 ---
 
@@ -144,6 +163,13 @@ src/
   web/                  # HTTP server + vanilla dashboard
   static/               # CLI built-ins, workflows, tag overrides
 dist/                   # Build output (tracked since v0.3.2)
+skills/
+  cheatsheet/SKILL.md   # Plugin-skill for discovery auto-triggering
+commands/
+  cheatsheet.md         # /cheatsheet → suggest
+  cs-search.md          # /cs-search → search
+  cs-suggest.md         # /cs-suggest → suggest
+  cs-stats.md           # /cs-stats → get_stats
 scripts/register.sh     # Maintainer fallback installer
 ```
 
@@ -169,7 +195,7 @@ npm run build
 npm test
 ```
 
-The full suite runs 144 tests (Jest). Additional scripts:
+The full suite runs 156 tests (Jest). Additional scripts:
 
 ```bash
 npm run lint          # ESLint v9 flat config
