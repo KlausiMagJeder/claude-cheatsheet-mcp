@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_ENTRY = path.resolve(__dirname, '../../../dist/index.js');
 
-/** The 13 tool names registered in src/index.ts — ground truth for regression. */
+/** The 14 tool names registered in src/index.ts — ground truth for regression. */
 const EXPECTED_TOOL_NAMES = [
   'list_skills',
   'list_commands',
@@ -33,6 +33,7 @@ const EXPECTED_TOOL_NAMES = [
   'list_hooks',
   'list_roles',
   'get_detail',
+  'get_plugin_detail',
   'get_stats',
   'get_workflows',
   'search',
@@ -211,7 +212,7 @@ describe('MCP server integration', () => {
       proc.kill('SIGTERM');
     });
 
-    it('returns exactly 13 tools with the correct names', async () => {
+    it('returns exactly 14 tools with the correct names', async () => {
       proc = spawnServer();
 
       // MCP requires an initialize before tools/list.

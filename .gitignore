@@ -26,3 +26,4 @@ coverage/
 /ideen.md
 /.config/tag-overrides.json
 /.config/workflow.json
+/.github/ISSUE_TEMPLATE/idea.md

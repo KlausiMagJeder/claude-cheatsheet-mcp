@@ -48,6 +48,7 @@ async function scanSettingsFile(settingsPath, options) {
                 metadata.plugin = options.pluginCtx.plugin;
                 metadata.marketplace = options.pluginCtx.marketplace;
                 metadata.version = options.pluginCtx.version;
+                metadata.installPath = options.pluginCtx.installPath;
             }
             entries.push({
                 id: createEntryId('hook', `${options.idPrefix}:${name}`),
@@ -149,13 +150,18 @@ function deriveCtxFromPath(pluginRoot, cacheDir) {
         const [marketplace, plugin, version] = segments;
         if (!marketplace || !plugin || !version)
             return null;
-        return { plugin, marketplace, version };
+        return { plugin, marketplace, version, installPath: pluginRoot };
     }
     if (segments.length === 4 && segments[1]?.startsWith('@')) {
         const [marketplace, scope, pluginName, version] = segments;
         if (!marketplace || !scope || !pluginName || !version)
             return null;
-        return { plugin: `${scope}/${pluginName}`, marketplace, version };
+        return {
+            plugin: `${scope}/${pluginName}`,
+            marketplace,
+            version,
+            installPath: pluginRoot,
+        };
     }
     return null;
 }

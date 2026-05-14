@@ -6,6 +6,18 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-14
+
+### Added
+- **Tool `get_plugin_detail`** (`src/tools/get-plugin-detail.ts`): plugin-zentrierte Detailansicht. Filtert den Catalog auf die 5 plugin-scoped Kinds (skill, command, agent, hook, mcp_tool) und liefert `totals` + `entries` pro Plugin sowie `version`, `marketplace`, `installPath`. Roles und CLI-Builtins bewusst ausgeklammert (nicht plugin-scoped). Issue #4.
+- **Dashboard Favoriten + Verlauf** (`src/web/dashboard.html`): Sterne-Toggle pro Entry, localStorage-Persistierung (`cheatsheet:favorites:v1`, `cheatsheet:recent:v1`, Cap 10, MRU). Issue #6.
+- **Dashboard Light-Mode + Empty-States** (`src/web/dashboard.html`): Sun/Moon-Toggle, `data-theme="light"`-Override mit 14 Custom-Properties (WCAG-AA), No-Flash-Inline-Script, 3 Empty-State-Varianten (Index/Filter/Suche) mit Kind-Label-Mapping. localStorage-Key `cheatsheet:theme:v1`. Issue #7.
+- Scanner-Erweiterung: Alle 5 plugin-scoped Scanner (`skills.ts`, `commands.ts`, `agents.ts`, `hooks.ts`, `mcp-tools.ts`) schreiben jetzt konsistent `metadata.installPath` zusätzlich zu `metadata.plugin`/`marketplace`/`version`. Voraussetzung für `get_plugin_detail`.
+- Tests: `src/__tests__/tools/get-plugin-detail.test.ts` (11 neue Tests, 5 describes). Erweiterung von `src/__tests__/asset-shipping.test.ts` um Dashboard-Smoke-Block (10 Tests) und Versions-Sync 4 → 5 Stellen (inkl. `src/index.ts` McpServer-Konstruktor).
+
+### Fixed
+- **Versions-Drift `src/index.ts`** (McpServer-Konstruktor): seit v0.4.0 stale auf `'0.3.2'` — jetzt synchron auf `'0.5.0'` und Test-abgesichert via `asset-shipping.test.ts` (4 → 5 Stellen).
+
 ## [0.4.0] - 2026-05-12
 
 ### Added
@@ -62,7 +74,8 @@ Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1
 - **Lokales Web-Dashboard** auf `http://127.0.0.1:37778` mit Suche, Kategorie-Filter, Suggest-Ranking und Detail-View.
 - **Register-Script** `scripts/register.sh` mit atomarem Edit, Backup, Parse-Validation und Auto-Rollback.
 
-[Unreleased]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/compare/v0.3.0...v0.3.1

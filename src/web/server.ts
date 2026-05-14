@@ -24,7 +24,6 @@ export function startWebServer(state: ServerState, staticDir: string, port = 377
     void handleRequest(req, res, router, dashboardPath);
   });
 
-  // SECURITY / Bedarfsanalyse B1 (Regression W1+A3):
   // Bind an 127.0.0.1 — NICHT 0.0.0.0 — weil der Server Inhalte aus ~/.claude/
   // ausliefert (Skill-Quelltexte, Hook-Konfigs mit Tokens, Agent-Prompts,
   // MCP-Server-Zugangsdaten). Ein LAN-Bind würde diese Inhalte ungeschützt
@@ -38,7 +37,7 @@ export function startWebServer(state: ServerState, staticDir: string, port = 377
     console.error(`Cheatsheet Dashboard @ http://127.0.0.1:${actualPort}`);
   });
 
-  // Bedarfsanalyse A2: Port-Kollision (EADDRINUSE) darf den Prozess nicht
+  // Port-Kollision (EADDRINUSE) darf den Prozess nicht
   // crashen. Wir loggen auf stderr und lassen den Caller entscheiden, ob
   // ein Retry mit anderem Port sinnvoll ist.
   server.on('error', (err: NodeJS.ErrnoException) => {

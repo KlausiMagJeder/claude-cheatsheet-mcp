@@ -155,31 +155,40 @@ describe('shipped plugin assets — cross-asset consistency', () => {
         }
     });
 });
-describe('version sync across 4 locations', () => {
+describe('version sync across 5 locations', () => {
     // WARUM: CLAUDE.md mahnt diese Disziplin explizit an
     // ("plugin-manifests.test.ts does not yet enforce this, so the discipline
-    // is on you"). plugin-manifests.test.ts prüft nur 2 von 4 Stellen
+    // is on you"). plugin-manifests.test.ts prüft nur 2 von 5 Stellen
     // (package.json + plugin.json). Dieser Block schließt die Lücke.
     // Wichtig: marketplace.json trägt die Version unter `metadata.version`,
-    // NICHT `plugins[0].version`.
-    it('package.json, plugin.json, marketplace.json (metadata.version), and README badge all match', () => {
+    // NICHT `plugins[0].version`. Die 5. Stelle ist der McpServer-Konstruktor
+    // in src/index.ts (seit v0.4.0 dormant bug — siehe Plan v1.1 §D.2).
+    const INDEX_TS_PATH = join(REPO_ROOT, 'src', 'index.ts');
+    it('package.json, plugin.json, marketplace.json (metadata.version), README badge, and src/index.ts (McpServer ctor) all match', () => {
         const pkg = readJson(PACKAGE_JSON_PATH);
         const plugin = readJson(PLUGIN_JSON_PATH);
         const marketplace = readJson(MARKETPLACE_JSON_PATH);
         const readme = readFileSync(README_PATH, 'utf8');
+        const indexTs = readFileSync(INDEX_TS_PATH, 'utf8');
         const packageVersion = pkg.version;
         const pluginVersion = plugin.version;
         const metadata = marketplace.metadata;
         const marketplaceVersion = metadata?.version;
         const readmeBadgeMatch = readme.match(/version-(\d+\.\d+\.\d+)-blue/);
         const readmeVersion = readmeBadgeMatch ? readmeBadgeMatch[1] : undefined;
+        // WARUM Regex statt ts-AST: kein zusätzliches Dep, die Stelle ist
+        // eindeutig in ~50 Zeilen (`new McpServer({ name: '...', version: '...' }, ...)`).
+        // Match die erste `version: '...'`-Stelle innerhalb des McpServer-Aufrufs.
+        const indexTsMatch = indexTs.match(/new McpServer\(\s*\{[^}]*version:\s*['"]([\d.]+)['"]/);
+        const indexTsVersion = indexTsMatch ? indexTsMatch[1] : undefined;
         const versionsByLocation = {
             'package.json': packageVersion,
             '.claude-plugin/plugin.json': pluginVersion,
             '.claude-plugin/marketplace.json (metadata.version)': marketplaceVersion,
             'README.md (version-...-blue badge)': readmeVersion,
+            'src/index.ts (McpServer ctor)': indexTsVersion,
         };
-        // Sanity: alle 4 Stellen müssen einen non-empty String tragen — sonst
+        // Sanity: alle 5 Stellen müssen einen non-empty String tragen — sonst
         // ist die Assertion auf string-equal nicht aussagekräftig.
         for (const [where, value] of Object.entries(versionsByLocation)) {
             if (typeof value !== 'string' || value.length === 0) {
@@ -187,15 +196,81 @@ describe('version sync across 4 locations', () => {
                     `All locations: ${JSON.stringify(versionsByLocation, null, 2)}`);
             }
         }
-        // Hauptassertion: alle 4 strikt gleich. Bei Fehlschlag wird das
-        // versionsByLocation-Objekt mit allen 4 Werten in der Diff-Message
+        // Hauptassertion: alle 5 strikt gleich. Bei Fehlschlag wird das
+        // versionsByLocation-Objekt mit allen 5 Werten in der Diff-Message
         // sichtbar — Jest gibt actual/expected aus.
+        //
+        // HINWEIS: dieser Test ist im Working-Tree von Phase D ERWARTET ROT,
+        // solange `src/index.ts` Z.45 noch '0.3.2' trägt und package.json
+        // bereits auf '0.4.0' (oder höher) bumped wurde. Wird in Phase E grün,
+        // wenn der Configuration Engineer alle 5 Stellen auf die neue Version
+        // synchronisiert (Plan v1.1 §D.2 + AK E-2-NEU).
         expect(versionsByLocation).toEqual({
             'package.json': packageVersion,
             '.claude-plugin/plugin.json': packageVersion,
             '.claude-plugin/marketplace.json (metadata.version)': packageVersion,
             'README.md (version-...-blue badge)': packageVersion,
+            'src/index.ts (McpServer ctor)': packageVersion,
         });
+    });
+});
+describe('dashboard.html — v0.5.0 frontend smoke checks', () => {
+    // WARUM Substring-Smoke statt DOM-Parsing: Frontend-DOM-Tests (jsdom) sind
+    // explizit out of scope für diese Rolle (Verbot 5). Wir prüfen nur, dass
+    // die in Phase B/C eingeführten Strings, Klassen und IDs im Asset
+    // tatsächlich vorhanden sind — als Schutz gegen unbeabsichtigten Rückbau.
+    const DASHBOARD_PATH = join(REPO_ROOT, 'src', 'web', 'dashboard.html');
+    let content;
+    beforeAll(() => {
+        expect(existsSync(DASHBOARD_PATH)).toBe(true);
+        content = readFileSync(DASHBOARD_PATH, 'utf8');
+    });
+    // #6 — Favoriten + Recent (localStorage)
+    it('contains favorites localStorage key "cheatsheet:favorites:v1"', () => {
+        expect(content).toContain('cheatsheet:favorites:v1');
+    });
+    it('contains recent localStorage key "cheatsheet:recent:v1"', () => {
+        expect(content).toContain('cheatsheet:recent:v1');
+    });
+    it('contains favorites + recent section markers', () => {
+        expect(content).toContain('favorites-section');
+        expect(content).toContain('recent-section');
+    });
+    it('contains the favorite-btn class (star toggle)', () => {
+        expect(content).toContain('favorite-btn');
+    });
+    // #7 — Light-Mode (Theme + No-Flash-Pattern)
+    it('contains theme localStorage key "cheatsheet:theme:v1"', () => {
+        expect(content).toContain('cheatsheet:theme:v1');
+    });
+    it('contains the light-mode CSS selector [data-theme="light"]', () => {
+        expect(content).toContain('[data-theme="light"]');
+    });
+    it('contains the theme-toggle button id', () => {
+        expect(content).toContain('theme-toggle');
+    });
+    // #7 — Empty-State-Container
+    it('contains the empty-state container class', () => {
+        expect(content).toContain('empty-state');
+    });
+    // Mindestens 3 deutsche UI-Strings (Phase C-1 — DE-Texte, EN-Migration F-5 später)
+    it('contains the German UI strings "Favoriten" / "Helles Design aktivieren" / "Keine Treffer"', () => {
+        expect(content).toContain('Favoriten');
+        expect(content).toContain('Helles Design aktivieren');
+        expect(content).toContain('Keine Treffer');
+    });
+    it('contains at least one v0.5.0 empty-state CTA marker', () => {
+        // WARUM disjunktive Liste: die Empty-State-Sektionen tragen unterschiedliche
+        // CTAs je nach Kontext (leerer Katalog vs. leere Suche vs. Filter). Mindestens
+        // einer muss vorhanden sein — Plan v1.1 Phase C-1.
+        const ctaMarkers = [
+            '/plugin install',
+            'Keine Treffer fuer',
+            'Probier einen anderen',
+            'Dein Katalog ist leer',
+        ];
+        const found = ctaMarkers.some((m) => content.includes(m));
+        expect(found).toBe(true);
     });
 });
 //# sourceMappingURL=asset-shipping.test.js.map

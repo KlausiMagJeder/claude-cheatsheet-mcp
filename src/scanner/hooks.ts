@@ -35,6 +35,9 @@ interface PluginCtx {
   plugin: string;
   marketplace: string;
   version: string;
+  // WARUM in metadata gespiegelt: `get_plugin_detail` (v0.5.0) liest installPath
+  // aus metadata, ohne erneuten Disk-I/O.
+  installPath: string;
 }
 
 type HookScopeMeta = 'user' | 'plugin';
@@ -90,6 +93,7 @@ async function scanSettingsFile(
         metadata.plugin = options.pluginCtx.plugin;
         metadata.marketplace = options.pluginCtx.marketplace;
         metadata.version = options.pluginCtx.version;
+        metadata.installPath = options.pluginCtx.installPath;
       }
 
       entries.push({
@@ -214,12 +218,17 @@ function deriveCtxFromPath(pluginRoot: string, cacheDir: string): PluginCtx | nu
   if (segments.length === 3) {
     const [marketplace, plugin, version] = segments;
     if (!marketplace || !plugin || !version) return null;
-    return { plugin, marketplace, version };
+    return { plugin, marketplace, version, installPath: pluginRoot };
   }
   if (segments.length === 4 && segments[1]?.startsWith('@')) {
     const [marketplace, scope, pluginName, version] = segments;
     if (!marketplace || !scope || !pluginName || !version) return null;
-    return { plugin: `${scope}/${pluginName}`, marketplace, version };
+    return {
+      plugin: `${scope}/${pluginName}`,
+      marketplace,
+      version,
+      installPath: pluginRoot,
+    };
   }
   return null;
 }

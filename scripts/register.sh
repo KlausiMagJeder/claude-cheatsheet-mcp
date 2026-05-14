@@ -19,14 +19,6 @@
 #     registration — /mcp will never show the entry. See changelog entry
 #     2026-04-17 in the plan for the empirical diagnosis.
 #
-# Generated via Jarvis role "Senior TypeScript Developer" for
-# claude-cheatsheet-mcp.
-#
-# References:
-#   - Plan Task 25 (Steps 1–4): .claude/plans/claude-cheatsheet-mcp-implementation.md
-#   - Bedarfsanalyse B5 (V7/O5): Parse-Error in der User-MCP-Config bricht
-#     Claude-Code-Start → Pflicht-Backup + Parse-Validation + dokumentierter
-#     Rollback-Pfad.
 #
 # Usage:
 #   ./scripts/register.sh              # Register the cheatsheet MCP server
@@ -116,10 +108,6 @@ REQUIREMENTS
   - node (used for JSON edit + validation; also covers the case where jq
     is not installed — no jq dependency)
   - $HOME must be writable by the current user (no sudo required)
-
-PLAN REFERENCE
-  See Task 25 in .claude/plans/claude-cheatsheet-mcp-implementation.md
-  Safety pattern motivated by Bedarfsanalyse B5.
 EOF
 }
 

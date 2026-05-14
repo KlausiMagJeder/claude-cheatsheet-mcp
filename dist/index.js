@@ -15,6 +15,7 @@ import { listHooks } from './tools/list-hooks.js';
 import { listRoles } from './tools/list-roles.js';
 import { getDetail } from './tools/get-detail.js';
 import { getStats } from './tools/get-stats.js';
+import { getPluginDetail } from './tools/get-plugin-detail.js';
 import { getWorkflows } from './tools/get-workflows.js';
 import { search } from './tools/search.js';
 import { suggest } from './tools/suggest.js';
@@ -34,7 +35,7 @@ const PLUGINS_PATH = process.env.CLAUDE_PLUGINS_PATH ?? path.join(GLOBAL_PATH, '
 // Explizite Capabilities-Deklaration (MCP-Experte Invariante #4):
 // Signalisiert dem Client Klartext, dass dieser Server nur Tools unterstützt
 // (keine resources, prompts, completions). Grep-freundlich für spätere Audits.
-const server = new McpServer({ name: 'claude-cheatsheet-mcp', version: '0.3.2' }, { capabilities: { tools: {} } });
+const server = new McpServer({ name: 'claude-cheatsheet-mcp', version: '0.5.0' }, { capabilities: { tools: {} } });
 // State-Objekt mit stabiler Referenz. `refresh` mutiert state.index;
 // alle Tool-Handler lesen state.index zur Call-Zeit.
 const state = {
@@ -146,6 +147,17 @@ server.registerTool('get_stats', {
     inputSchema: {},
 }, async () => ({
     content: [{ type: 'text', text: JSON.stringify(getStats(state.index), null, 2) }],
+}));
+server.registerTool('get_plugin_detail', {
+    description: `Returns a plugin-centric bundle: for a given plugin name (exact match, case-sensitive), all of its skills, commands, agents, hooks, and MCP tools — grouped by kind — plus install version, marketplace and installPath. Use when the user asks 'what does the <plugin> plugin ship', 'show everything from superpowers', 'list all assets in plugin X', 'pre-update audit of plugin Y', or wants a single-shot inventory per plugin. For one specific entry by ID, use \`get_detail\`; for catalog-wide listings by kind, use \`list_skills\`/\`list_commands\`/\`list_agents\`/\`list_hooks\`/\`list_mcp_tools\`; for substring or keyword matches across all metadata (including partial plugin-name hits) use \`search\` instead. Returns \`{ found: false, ... }\` (no error) if the plugin name has no installed entries.`,
+    inputSchema: { pluginName: z.string().min(1) },
+}, async ({ pluginName }) => ({
+    content: [
+        {
+            type: 'text',
+            text: JSON.stringify(getPluginDetail(state.index, { pluginName }), null, 2),
+        },
+    ],
 }));
 server.registerTool('get_workflows', {
     description: `Returns curated workflow templates (ordered sequences of skills, commands and agents for recurring tasks like 'build a feature', 'fix a bug', 'review a PR', 'investigate a Rollbar incident'). Use when the user asks 'how do I typically do X', 'what's the workflow for Y', 'show me a feature-building recipe', or wants guidance on combining multiple catalog entries into a sequence. Pass \`task\` to filter for a specific workflow theme.`,

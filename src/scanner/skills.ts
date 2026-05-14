@@ -46,6 +46,10 @@ interface PluginContext {
   plugin: string;
   marketplace: string;
   version: string;
+  // WARUM in metadata gespiegelt: `get_plugin_detail` (v0.5.0) liest installPath
+  // aus metadata, ohne erneuten Disk-I/O. Bei lokalen `repos/`-Plugins fällt der
+  // Wert auf den Repo-Root.
+  installPath: string;
 }
 
 /**
@@ -145,6 +149,7 @@ async function discoverRepoContexts(pluginsPath: string): Promise<PluginContext[
       plugin: name,
       marketplace: 'local',
       version: 'unknown',
+      installPath: root,
     });
   }
   return contexts;
@@ -156,6 +161,7 @@ function refToContext(ref: InstalledPluginRef): PluginContext {
     plugin: ref.plugin,
     marketplace: ref.marketplace,
     version: ref.version,
+    installPath: ref.installPath,
   };
 }
 
@@ -219,7 +225,7 @@ function deriveContextFromPath(pluginRoot: string, cacheDir: string): PluginCont
   if (segments.length === 3) {
     const [marketplace, plugin, version] = segments;
     if (!marketplace || !plugin || !version) return null;
-    return { root: pluginRoot, plugin, marketplace, version };
+    return { root: pluginRoot, plugin, marketplace, version, installPath: pluginRoot };
   }
 
   if (segments.length === 4 && segments[1]?.startsWith('@')) {
@@ -230,6 +236,7 @@ function deriveContextFromPath(pluginRoot: string, cacheDir: string): PluginCont
       plugin: `${scope}/${pluginName}`,
       marketplace,
       version,
+      installPath: pluginRoot,
     };
   }
 
@@ -394,6 +401,7 @@ async function parseSkillFile(filePath: string, ctx: PluginContext): Promise<Cat
     plugin: ctx.plugin,
     marketplace: ctx.marketplace,
     version: ctx.version,
+    installPath: ctx.installPath,
     deprecated,
   };
   if (trigger !== undefined) metadata.trigger = trigger;
