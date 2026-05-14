@@ -70,7 +70,6 @@ describe('createRouter', () => {
 });
 
 describe('startWebServer (security: loopback-only binding)', () => {
-  // Regression guard for Bedarfsanalyse Blocker B1 / finding W1+A3:
   // ~/.claude/ contents (secrets, hook tokens, agent prompts) must never
   // be exposed to the LAN. The server MUST bind 127.0.0.1, never 0.0.0.0.
   it('binds to 127.0.0.1 and responds on loopback', async () => {

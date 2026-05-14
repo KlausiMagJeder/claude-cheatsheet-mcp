@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
   <title>Claude Cheatsheet</title>
+  <script>
+    /* No-Flash-Pattern (Phase C-2 Idee #7):
+       Liest das persistierte Theme aus localStorage BEVOR CSS evaluiert wird,
+       um FOUC (Flash of Unstyled Content) beim Pageload zu verhindern.
+       Inline + synchron (kein defer/async) — sonst greift es nach dem ersten Paint.
+       try/catch fuer Privacy-Mode / Storage-blocked-Browser (Default = Dark). */
+    (function () {
+      try {
+        var t = localStorage.getItem('cheatsheet:theme:v1');
+        if (t === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {
+        /* localStorage blocked -> Default Dark, ok */
+      }
+    })();
+  </script>
   <style>
     :root {
       --bg: #0d1117;
@@ -24,6 +41,30 @@
       --red: #f85149;
       --violet: #bc8cff;
       --orange: #f0883e;
+    }
+
+    /* Light-Mode (Phase C-2 Idee #7) — Aktivierung via [data-theme="light"]
+       auf <html>. 14 Pendants zu den Dark-Tokens. Alle Text-Kontraste
+       gegen die jeweiligen Hintergruende >= 4.5:1 (WCAG AA), die meisten
+       AAA. --border ist dokumentierte Ausnahme (WCAG SC 1.4.11):
+       bordered Components haben zusaetzliche Background-Differenz und
+       der Focus-State wechselt auf --accent (7.13:1). Siehe UI/UX-Spec
+       v0.5.0-light-palette.md Sektion 1. */
+    [data-theme="light"] {
+      --bg: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #eaeef2;
+      --text: #1f2328;
+      --text-secondary: #3d444d;
+      --text-muted: #59636e;
+      --accent: #0550ae;
+      --accent-hover: #033d8b;
+      --border: #d1d9e0;
+      --green: #116329;
+      --yellow: #7d4e00;
+      --red: #a40e26;
+      --violet: #6639ba;
+      --orange: #9a3412;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -87,6 +128,34 @@
       flex-wrap: wrap;
     }
     .stats span { color: var(--accent); font-weight: 600; }
+
+    /* Theme-Toggle-Button (Phase C-2 Idee #7) — Sun/Moon im Header.
+       18x18 SVG Icon in 36x36 Button-Padding. Hover-State konsistent mit
+       .filter-btn:hover. Focus-State via globalem :focus-visible-Block. */
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text);
+    }
+    .theme-toggle-btn svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
 
     main { max-width: 1200px; margin: 0 auto; padding: 24px; }
 
@@ -212,6 +281,45 @@
     }
     .entry-item:hover { border-color: var(--accent); }
 
+    /* Favoriten- / Recent-Sektionen + Stern-Button (Phase B Idee #6) */
+    .favorites-section,
+    .recent-section {
+      margin-bottom: 20px;
+    }
+    .favorites-section h2,
+    .recent-section h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .favorite-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1;
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .favorite-btn:hover { color: var(--yellow); }
+    .favorite-btn[aria-pressed="true"] { color: var(--yellow); }
+    .favorite-btn .favorite-icon { display: inline-block; width: 16px; height: 16px; }
+    /* Stale-Eintrag (ID nicht mehr im Index): gedimmt, nicht klickbar wirkend */
+    .entry-item.is-stale {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .entry-item.is-stale:hover { border-color: var(--border); }
+
     .entry-kind {
       font-size: 11px;
       font-weight: 600;
@@ -252,12 +360,47 @@
       color: var(--text-secondary);
     }
 
+    /* Empty-States (Phase C-2 Idee #7) — 3 Varianten:
+       Index leer / Filter leer / Suche leer. Center-aligned, Headline +
+       Sub-Text + CTA. Code-Inline mit bg-tertiary. */
     .empty-state {
       text-align: center;
       padding: 48px 16px;
       color: var(--text-secondary);
       font-size: 14px;
     }
+    .empty-state h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .empty-state p { margin-bottom: 12px; }
+    .empty-state code {
+      background: var(--bg-tertiary);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: 'SF Mono', Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .empty-state .empty-cta {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .empty-state .empty-cta:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .empty-state .empty-cta + .empty-cta { margin-left: 8px; }
 
     /* Detail-Panel */
     .detail-panel {
@@ -340,7 +483,6 @@
     }
 
     /* F1 Prefers-reduced-motion */
-    @media (prefers-color-scheme: no-preference) {}
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         transition: none !important;
@@ -355,6 +497,28 @@
   <header>
     <h1>Claude Cheatsheet</h1>
     <div class="stats" id="stats" aria-live="polite"></div>
+    <button
+      type="button"
+      id="theme-toggle"
+      class="theme-toggle-btn"
+      aria-label="Helles Design aktivieren"
+      aria-pressed="false"
+    >
+      <span class="theme-icon" id="theme-icon" aria-hidden="true">
+        <!-- Lucide "sun" SVG (Default: Dark aktiv -> Sun zeigen = wechselt zu Light) -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path>
+          <path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.41 1.41"></path>
+          <path d="m17.66 17.66 1.41 1.41"></path>
+          <path d="M2 12h2"></path>
+          <path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path>
+          <path d="m19.07 4.93-1.41 1.41"></path>
+        </svg>
+      </span>
+    </button>
   </header>
 
   <main id="main">
@@ -378,6 +542,34 @@
         role="region"
         aria-label="Vorschlaege"
         aria-live="polite"
+      ></div>
+    </section>
+
+    <section
+      class="favorites-section"
+      id="favorites-section"
+      aria-labelledby="favorites-heading"
+      hidden
+    >
+      <h2 id="favorites-heading">Favoriten</h2>
+      <div
+        class="entry-list"
+        id="favorites-list"
+        aria-label="Favorisierte Eintraege"
+      ></div>
+    </section>
+
+    <section
+      class="recent-section"
+      id="recent-section"
+      aria-labelledby="recent-heading"
+      hidden
+    >
+      <h2 id="recent-heading">Zuletzt geoeffnet</h2>
+      <div
+        class="entry-list"
+        id="recent-list"
+        aria-label="Zuletzt geoeffnete Eintraege"
       ></div>
     </section>
 
@@ -436,7 +628,6 @@
     'use strict';
 
     /* ------------------------------------------------------------------ *
-     * XSS-Escape-Helper (Pflicht gem. Rolle v2.2 / Bedarfsanalyse W3)
      * Alle interpolierten Werte (name, description, tags, source,
      * filePath, id, content, reason, kind, scope) laufen durch escHtml.
      * ------------------------------------------------------------------ */
@@ -446,6 +637,22 @@
       return div.innerHTML;
     }
 
+    /* ------------------------------------------------------------------ *
+     * KIND_LABELS — Singular-Form fuer Empty-State-Anzeige.
+     * Filter-Buttons zeigen Plural ("Skills", "Commands"), Empty-States
+     * verwenden Singular ("Keine Skill-Eintraege ..."). Quelle: UI/UX-Spec
+     * v0.5.0-light-palette.md Sektion 3.
+     * ------------------------------------------------------------------ */
+    const KIND_LABELS = {
+      skill: 'Skill',
+      command: 'Slash-Command',
+      agent: 'Agent',
+      hook: 'Hook',
+      mcp_tool: 'MCP-Tool',
+      role: 'Jarvis-Rolle',
+      cli_command: 'CLI-Befehl',
+    };
+
     /* ------------------------------------------------------------------ */
     /* State                                                              */
     /* ------------------------------------------------------------------ */
@@ -453,6 +660,131 @@
     let currentFilter = 'all';
     let searchTimer = null;
     let lastTriggerElement = null;
+
+    /* ------------------------------------------------------------------ */
+    /* Favoriten + Recent (Phase B Idee #6) — pure localStorage           */
+    /* ------------------------------------------------------------------ */
+    const FAV_KEY = 'cheatsheet:favorites:v1';
+    const RECENT_KEY = 'cheatsheet:recent:v1';
+    const RECENT_CAP = 10;
+
+    function readList(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [];
+      } catch (_e) {
+        // Quota-Exhaustion, Private-Mode, JSON-Parse-Fail: silent degrade
+        return [];
+      }
+    }
+
+    function writeList(key, list) {
+      try {
+        localStorage.setItem(key, JSON.stringify(list));
+      } catch (_e) {
+        // Quota-Exhaustion / Private-Mode: silent degrade (kein State-Bruch)
+      }
+    }
+
+    function isFavorite(id) {
+      if (!id) return false;
+      return readList(FAV_KEY).indexOf(id) !== -1;
+    }
+
+    function toggleFavorite(id) {
+      if (!id) return;
+      const list = readList(FAV_KEY);
+      const idx = list.indexOf(id);
+      if (idx === -1) {
+        list.push(id);
+      } else {
+        list.splice(idx, 1);
+      }
+      writeList(FAV_KEY, list);
+      // Re-Render: Favoriten-Sektion + Main-Liste (Stern-Status aktualisieren)
+      renderFavorites();
+      applyFilters();
+    }
+
+    function pushRecent(id) {
+      if (!id) return;
+      const list = readList(RECENT_KEY).filter((x) => x !== id);
+      list.unshift(id);
+      if (list.length > RECENT_CAP) list.length = RECENT_CAP;
+      writeList(RECENT_KEY, list);
+      renderRecent();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Theme-Toggle (Phase C-2 Idee #7) — localStorage-persistiert.       */
+    /* No-Flash bereits im <head>-Inline-Script behandelt.                 */
+    /* ------------------------------------------------------------------ */
+    const THEME_KEY = 'cheatsheet:theme:v1';
+
+    // Lucide-SVG-Pfade (18x18 stroke 2). Ein Icon zur Zeit sichtbar:
+    // Dark aktiv  -> Sun-Icon  (Klick wechselt zu Light)
+    // Light aktiv -> Moon-Icon (Klick wechselt zu Dark)
+    const SUN_SVG =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="12" cy="12" r="4"></circle>' +
+      '<path d="M12 2v2"></path><path d="M12 20v2"></path>' +
+      '<path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>' +
+      '<path d="M2 12h2"></path><path d="M20 12h2"></path>' +
+      '<path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>' +
+      '</svg>';
+    const MOON_SVG =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>' +
+      '</svg>';
+
+    function readTheme() {
+      try {
+        const t = localStorage.getItem(THEME_KEY);
+        return t === 'light' ? 'light' : 'dark';
+      } catch (_e) {
+        return 'dark';
+      }
+    }
+
+    function writeTheme(theme) {
+      try {
+        localStorage.setItem(THEME_KEY, theme);
+      } catch (_e) {
+        /* Quota / Private-Mode: silent degrade */
+      }
+    }
+
+    function applyTheme(theme) {
+      const html = document.documentElement;
+      if (theme === 'light') {
+        html.setAttribute('data-theme', 'light');
+      } else {
+        html.removeAttribute('data-theme');
+      }
+      const btn = document.getElementById('theme-toggle');
+      const icon = document.getElementById('theme-icon');
+      if (!btn || !icon) return;
+      if (theme === 'light') {
+        // Light aktiv -> Moon-Icon (= wohin der Klick wechselt), Button-Label "Dunkles ..."
+        icon.innerHTML = MOON_SVG;
+        btn.setAttribute('aria-label', 'Dunkles Design aktivieren');
+        btn.setAttribute('aria-pressed', 'true');
+      } else {
+        icon.innerHTML = SUN_SVG;
+        btn.setAttribute('aria-label', 'Helles Design aktivieren');
+        btn.setAttribute('aria-pressed', 'false');
+      }
+    }
+
+    function toggleTheme() {
+      const next = readTheme() === 'light' ? 'dark' : 'light';
+      writeTheme(next);
+      applyTheme(next);
+    }
 
     /* ------------------------------------------------------------------ */
     /* DOM-Refs                                                           */
@@ -468,6 +800,10 @@
     const $detailClose = document.getElementById('detail-close');
     const $overlay = document.getElementById('overlay');
     const $errorBanner = document.getElementById('error-banner');
+    const $favoritesSection = document.getElementById('favorites-section');
+    const $favoritesList = document.getElementById('favorites-list');
+    const $recentSection = document.getElementById('recent-section');
+    const $recentList = document.getElementById('recent-list');
 
     /* ------------------------------------------------------------------ */
     /* Error-UI                                                           */
@@ -497,6 +833,8 @@
         allEntries = Array.isArray(entries) ? entries : [];
         renderStats(stats);
         renderEntries(allEntries);
+        renderFavorites();
+        renderRecent();
         clearError();
       } catch (err) {
         showError('Fehler beim Laden: ' + (err && err.message ? err.message : String(err)));
@@ -524,30 +862,149 @@
     /* ------------------------------------------------------------------ */
     /* Render: Entries                                                     */
     /* ------------------------------------------------------------------ */
-    function renderEntries(entries) {
+    function entryItemHtml(e, opts) {
+      const stale = !!(opts && opts.stale);
+      const kind = e && e.kind ? e.kind : (e && e.id ? String(e.id).split(':')[0] : 'unknown');
+      const name = e && e.name ? e.name : (stale && e && e.id ? e.id : '');
+      const desc = e && e.description ? String(e.description).slice(0, 140) : (stale ? 'Eintrag nicht mehr im Index' : '');
+      const tags = Array.isArray(e && e.tags) ? e.tags : [];
+      const id = e && e.id ? e.id : '';
+      const fav = isFavorite(id);
+      const tagsHtml = tags.map((t) => '<span class="tag">' + escHtml(t) + '</span>').join('');
+      // Stern-Button: aria-pressed reflektiert Status; aria-label switcht Verb (Add/Remove)
+      const favLabel = fav ? 'Favorit entfernen' : 'Favorit hinzufuegen';
+      const favIcon = fav ? '★' : '☆'; // U+2605 (filled) / U+2606 (outlined)
+      const favBtn =
+        '<button class="favorite-btn" type="button"' +
+        ' data-id="' + escHtml(id) + '"' +
+        ' aria-pressed="' + (fav ? 'true' : 'false') + '"' +
+        ' aria-label="' + escHtml(favLabel) + '">' +
+          '<span class="favorite-icon" aria-hidden="true">' + favIcon + '</span>' +
+        '</button>';
+      const itemClass = 'entry-item' + (stale ? ' is-stale' : '');
+      const ariaDisabled = stale ? ' aria-disabled="true"' : '';
+      const tabIndex = stale ? '-1' : '0';
+      return (
+        '<article class="' + itemClass + '" role="button" tabindex="' + tabIndex + '"' +
+        ' data-id="' + escHtml(id) + '"' + ariaDisabled +
+        ' aria-label="Details fuer ' + escHtml(name) + ' oeffnen">' +
+          favBtn +
+          '<div class="entry-kind ' + escHtml(kind) + '">' + escHtml(kind) + '</div>' +
+          '<div class="entry-name">' + escHtml(name) + '</div>' +
+          '<div class="entry-desc">' + escHtml(desc) + '</div>' +
+          '<div class="entry-tags">' + tagsHtml + '</div>' +
+        '</article>'
+      );
+    }
+
+    /* Empty-States (Phase C-2 Idee #7) — 3 Varianten gemaess UI/UX-Spec.
+       XSS-Schutz: query und kind laufen durch escHtml. Buttons haben
+       data-action fuer Event-Delegation (Reset-Filter / Suche leeren). */
+    function emptyStateIndexEmptyHtml() {
+      return (
+        '<div class="empty-state" role="status">' +
+          '<h2>Dein Katalog ist leer.</h2>' +
+          '<p>Es wurden keine Plugins, Skills oder Hooks erkannt.</p>' +
+          '<p>Installiere ein Plugin mit <code>/plugin install &lt;name&gt;</code> und lade das Dashboard neu.</p>' +
+        '</div>'
+      );
+    }
+
+    function emptyStateFilterEmptyHtml(kind) {
+      const label = KIND_LABELS[kind] || kind || 'Eintrag';
+      return (
+        '<div class="empty-state" role="status">' +
+          '<h2>Keine ' + escHtml(label) + '-Eintraege gefunden.</h2>' +
+          '<p>Mit dem aktiven Filter gibt es nichts zu zeigen. Vielleicht bringt ein anderes Plugin diese Art Eintrag mit.</p>' +
+          '<button type="button" class="empty-cta" data-action="reset-filter">Filter zuruecksetzen</button>' +
+        '</div>'
+      );
+    }
+
+    function emptyStateSearchEmptyHtml(query, filterKind) {
+      const filterActive = filterKind && filterKind !== 'all';
+      const filterLabel = filterActive ? (KIND_LABELS[filterKind] || filterKind) : '';
+      const subText = filterActive
+        ? 'Probier einen anderen Suchbegriff oder entferne den Filter "' + escHtml(filterLabel) + '", um den ganzen Katalog zu durchsuchen.'
+        : 'Probier einen anderen Suchbegriff oder nutze die Filter-Buttons.';
+      const extraCta = filterActive
+        ? '<button type="button" class="empty-cta" data-action="reset-all">Filter und Suche zuruecksetzen</button>'
+        : '';
+      return (
+        '<div class="empty-state" role="status">' +
+          '<h2>Keine Treffer fuer <code>"' + escHtml(query) + '"</code>.</h2>' +
+          '<p>' + subText + '</p>' +
+          '<button type="button" class="empty-cta" data-action="reset-search">Suche leeren</button>' +
+          extraCta +
+        '</div>'
+      );
+    }
+
+    function renderEntries(entries, opts) {
+      const o = opts || {};
       if (!entries || entries.length === 0) {
-        $entryList.innerHTML = '<div class="empty-state">Keine Eintraege gefunden.</div>';
+        // Reihenfolge der Checks ist wichtig:
+        // 1) Index global leer -> Variante 1
+        // 2) Suche aktiv (mit/ohne Filter) -> Variante 3
+        // 3) Filter aktiv ohne Suche -> Variante 2
+        // 4) Fallback (nichts aktiv, aber leer) -> Variante 1
+        let html;
+        if (allEntries.length === 0) {
+          html = emptyStateIndexEmptyHtml();
+        } else if (o.query && o.query.length > 0) {
+          html = emptyStateSearchEmptyHtml(o.query, o.filterKind);
+        } else if (o.filterKind && o.filterKind !== 'all') {
+          html = emptyStateFilterEmptyHtml(o.filterKind);
+        } else {
+          html = emptyStateIndexEmptyHtml();
+        }
+        $entryList.innerHTML = html;
         return;
       }
-      const html = entries.map((e) => {
-        const kind = e && e.kind ? e.kind : (e && e.id ? String(e.id).split(':')[0] : 'unknown');
-        const name = e && e.name ? e.name : '';
-        const desc = e && e.description ? String(e.description).slice(0, 140) : '';
-        const tags = Array.isArray(e && e.tags) ? e.tags : [];
-        const id = e && e.id ? e.id : '';
-        const tagsHtml = tags.map((t) => '<span class="tag">' + escHtml(t) + '</span>').join('');
-        return (
-          '<article class="entry-item" role="button" tabindex="0"' +
-          ' data-id="' + escHtml(id) + '"' +
-          ' aria-label="Details fuer ' + escHtml(name) + ' oeffnen">' +
-            '<div class="entry-kind ' + escHtml(kind) + '">' + escHtml(kind) + '</div>' +
-            '<div class="entry-name">' + escHtml(name) + '</div>' +
-            '<div class="entry-desc">' + escHtml(desc) + '</div>' +
-            '<div class="entry-tags">' + tagsHtml + '</div>' +
-          '</article>'
-        );
-      }).join('');
+      const html = entries.map((e) => entryItemHtml(e, { stale: false })).join('');
       $entryList.innerHTML = html;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Render: Favoriten + Recent (Phase B)                                */
+    /* WICHTIG: KEIN Write-Back beim Render (Plan-Reviewer-Risiko 4).      */
+    /* Stale-IDs werden gedimmt rendered, NICHT aus localStorage entfernt. */
+    /* ------------------------------------------------------------------ */
+    function entriesById(ids) {
+      // Map id -> entry; behaelt Reihenfolge der IDs, markiert stale IDs.
+      return ids.map((id) => {
+        const found = allEntries.find((e) => e && e.id === id);
+        if (found) return { entry: found, stale: false };
+        return { entry: { id: id, name: id, description: '', kind: 'unknown', tags: [] }, stale: true };
+      });
+    }
+
+    function renderFavorites() {
+      const ids = readList(FAV_KEY);
+      if (ids.length === 0) {
+        $favoritesSection.hidden = true;
+        $favoritesList.innerHTML = '';
+        return;
+      }
+      $favoritesSection.hidden = false;
+      const html = entriesById(ids)
+        .map((row) => entryItemHtml(row.entry, { stale: row.stale }))
+        .join('');
+      $favoritesList.innerHTML = html;
+    }
+
+    function renderRecent() {
+      const ids = readList(RECENT_KEY);
+      if (ids.length === 0) {
+        $recentSection.hidden = true;
+        $recentList.innerHTML = '';
+        return;
+      }
+      $recentSection.hidden = false;
+      const html = entriesById(ids)
+        .map((row) => entryItemHtml(row.entry, { stale: row.stale }))
+        .join('');
+      $recentList.innerHTML = html;
     }
 
     /* ------------------------------------------------------------------ */
@@ -564,7 +1021,8 @@
     }
 
     function applyFilters() {
-      const q = $searchInput.value.trim().toLowerCase();
+      const rawQuery = $searchInput.value.trim();
+      const q = rawQuery.toLowerCase();
       let filtered = allEntries;
       if (currentFilter !== 'all') {
         filtered = filtered.filter((e) => {
@@ -580,7 +1038,7 @@
           return (name + ' ' + desc + ' ' + tags).toLowerCase().includes(q);
         });
       }
-      renderEntries(filtered);
+      renderEntries(filtered, { query: rawQuery, filterKind: currentFilter });
     }
 
     /* ------------------------------------------------------------------ */
@@ -632,6 +1090,8 @@
     /* ------------------------------------------------------------------ */
     async function showDetail(id) {
       if (!id) return;
+      // Recent-Tracking: jedes Detail-Oeffnen pusht in MRU (Dedup + Cap intern)
+      pushRecent(id);
       try {
         const res = await fetch('/api/entry/' + encodeURIComponent(id));
         if (!res.ok) throw new Error('Detail fehlgeschlagen (' + res.status + ')');
@@ -753,19 +1213,53 @@
       setFilter(btn.dataset.kind);
     });
 
-    // Entry-Liste Click/Keyboard (Event-Delegation)
-    $entryList.addEventListener('click', (e) => {
+    // Entry-Liste Click/Keyboard (Event-Delegation, jetzt auch Stern-Toggle)
+    // Stern-Click stopPropagation()-t — kein gleichzeitiges showDetail.
+    function handleListClick(e) {
+      // Empty-State-CTAs (Phase C-2): Filter/Search-Reset.
+      const cta = e.target.closest('.empty-cta');
+      if (cta) {
+        const action = cta.dataset.action;
+        if (action === 'reset-filter') {
+          setFilter('all');
+        } else if (action === 'reset-search') {
+          $searchInput.value = '';
+          applyFilters();
+        } else if (action === 'reset-all') {
+          $searchInput.value = '';
+          setFilter('all');
+        }
+        return;
+      }
+      const favBtn = e.target.closest('.favorite-btn');
+      if (favBtn) {
+        e.stopPropagation();
+        toggleFavorite(favBtn.dataset.id);
+        return;
+      }
       const item = e.target.closest('.entry-item');
       if (!item) return;
+      // Stale-Eintraege: nicht navigieren
+      if (item.classList.contains('is-stale')) return;
       showDetail(item.dataset.id);
-    });
-    $entryList.addEventListener('keydown', (e) => {
+    }
+    function handleListKeydown(e) {
       if (e.key !== 'Enter' && e.key !== ' ') return;
+      // Stern-Button hat eigenes natives Button-Behavior (Enter/Space toggelt) —
+      // hier nur Article-Items behandeln.
+      if (e.target.closest('.favorite-btn')) return;
       const item = e.target.closest('.entry-item');
       if (!item) return;
+      if (item.classList.contains('is-stale')) return;
       e.preventDefault();
       showDetail(item.dataset.id);
-    });
+    }
+    $entryList.addEventListener('click', handleListClick);
+    $entryList.addEventListener('keydown', handleListKeydown);
+    $favoritesList.addEventListener('click', handleListClick);
+    $favoritesList.addEventListener('keydown', handleListKeydown);
+    $recentList.addEventListener('click', handleListClick);
+    $recentList.addEventListener('keydown', handleListKeydown);
 
     // Suggest-Results Click/Keyboard (Event-Delegation)
     $suggestResults.addEventListener('click', (e) => {
@@ -808,6 +1302,16 @@
       }
       trapFocus(e);
     });
+
+    // Theme-Toggle (Phase C-2 Idee #7)
+    const $themeToggle = document.getElementById('theme-toggle');
+    if ($themeToggle) {
+      $themeToggle.addEventListener('click', toggleTheme);
+    }
+    // Initial: aria-label/icon an persistierten State angleichen.
+    // (Das No-Flash-Inline-Script im <head> hat data-theme bereits gesetzt;
+    //  hier syncen wir Icon + aria-* mit dem aktuellen Theme.)
+    applyTheme(readTheme());
 
     // Start
     init();

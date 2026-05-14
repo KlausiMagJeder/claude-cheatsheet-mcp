@@ -201,6 +201,9 @@ describe('scanHooks', () => {
       expect(mine!.metadata.marketplace).toBe('my-mp');
       expect(mine!.metadata.version).toBe('1.0.0');
       expect(mine!.metadata.hookScope).toBe('plugin');
+      // v0.5.0 — installPath non-null (Plan v1.1 AK A-0-2 + D-9).
+      expect(typeof mine!.metadata.installPath).toBe('string');
+      expect(mine!.metadata.installPath).toBe(plug);
     });
 
     it('does not crash on malformed plugin hooks.json', async () => {

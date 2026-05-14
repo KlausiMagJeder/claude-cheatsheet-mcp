@@ -51,6 +51,9 @@ describe('scanSkills', () => {
     expect(skill.metadata.plugin).toBe('superpowers');
     expect(skill.metadata.marketplace).toBe('claude-plugins-official');
     expect(skill.metadata.version).toBe('5.0.7');
+    // v0.5.0 — installPath non-null (Plan v1.1 AK A-0-2 + D-9).
+    expect(typeof skill.metadata.installPath).toBe('string');
+    expect(skill.metadata.installPath).toBe(pluginRoot);
     expect(skill.id).toBe('skill:brainstorming');
   });
 

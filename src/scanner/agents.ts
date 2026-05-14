@@ -27,6 +27,9 @@ interface PluginCtx {
   plugin: string;
   marketplace: string;
   version: string;
+  // WARUM in metadata gespiegelt: `get_plugin_detail` (v0.5.0) liest installPath
+  // aus metadata, ohne erneuten Disk-I/O.
+  installPath: string;
 }
 
 export async function scanAgents(staticDir: string, pluginsPath?: string): Promise<CatalogEntry[]> {
@@ -177,6 +180,7 @@ async function parseAgentFile(filePath: string, ctx: PluginCtx): Promise<Catalog
     plugin: ctx.plugin,
     marketplace: ctx.marketplace,
     version: ctx.version,
+    installPath: ctx.installPath,
   };
   if (typeof data.model === 'string') metadata.model = data.model;
   if (typeof data.color === 'string') metadata.color = data.color;
@@ -201,12 +205,18 @@ function deriveCtxFromPath(pluginRoot: string, cacheDir: string): PluginCtx | nu
   if (segments.length === 3) {
     const [marketplace, plugin, version] = segments;
     if (!marketplace || !plugin || !version) return null;
-    return { root: pluginRoot, plugin, marketplace, version };
+    return { root: pluginRoot, plugin, marketplace, version, installPath: pluginRoot };
   }
   if (segments.length === 4 && segments[1]?.startsWith('@')) {
     const [marketplace, scope, pluginName, version] = segments;
     if (!marketplace || !scope || !pluginName || !version) return null;
-    return { root: pluginRoot, plugin: `${scope}/${pluginName}`, marketplace, version };
+    return {
+      root: pluginRoot,
+      plugin: `${scope}/${pluginName}`,
+      marketplace,
+      version,
+      installPath: pluginRoot,
+    };
   }
   return null;
 }

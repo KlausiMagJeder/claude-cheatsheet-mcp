@@ -125,6 +125,7 @@ async function discoverRepoContexts(pluginsPath) {
             plugin: name,
             marketplace: 'local',
             version: 'unknown',
+            installPath: root,
         });
     }
     return contexts;
@@ -135,6 +136,7 @@ function refToContext(ref) {
         plugin: ref.plugin,
         marketplace: ref.marketplace,
         version: ref.version,
+        installPath: ref.installPath,
     };
 }
 /**
@@ -193,7 +195,7 @@ function deriveContextFromPath(pluginRoot, cacheDir) {
         const [marketplace, plugin, version] = segments;
         if (!marketplace || !plugin || !version)
             return null;
-        return { root: pluginRoot, plugin, marketplace, version };
+        return { root: pluginRoot, plugin, marketplace, version, installPath: pluginRoot };
     }
     if (segments.length === 4 && segments[1]?.startsWith('@')) {
         const [marketplace, scope, pluginName, version] = segments;
@@ -204,6 +206,7 @@ function deriveContextFromPath(pluginRoot, cacheDir) {
             plugin: `${scope}/${pluginName}`,
             marketplace,
             version,
+            installPath: pluginRoot,
         };
     }
     return null;
@@ -357,6 +360,7 @@ async function parseSkillFile(filePath, ctx) {
         plugin: ctx.plugin,
         marketplace: ctx.marketplace,
         version: ctx.version,
+        installPath: ctx.installPath,
         deprecated,
     };
     if (trigger !== undefined)

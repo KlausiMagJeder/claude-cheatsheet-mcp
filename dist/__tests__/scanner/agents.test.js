@@ -124,6 +124,9 @@ describe('scanAgents', () => {
             expect(ma).toBeDefined();
             expect(ma.metadata.marketplace).toBe('my-mp');
             expect(ma.metadata.version).toBe('2.0.0');
+            // v0.5.0 — installPath non-null (siehe Plan v1.1 AK A-0-2 + D-9).
+            expect(typeof ma.metadata.installPath).toBe('string');
+            expect(ma.metadata.installPath).toBe(plug);
         });
         it('returns only built-ins when pluginsPath is missing/empty', async () => {
             const staticDir = path.resolve(__dirname, '..', 'static');

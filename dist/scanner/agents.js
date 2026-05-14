@@ -151,6 +151,7 @@ async function parseAgentFile(filePath, ctx) {
         plugin: ctx.plugin,
         marketplace: ctx.marketplace,
         version: ctx.version,
+        installPath: ctx.installPath,
     };
     if (typeof data.model === 'string')
         metadata.model = data.model;
@@ -175,13 +176,19 @@ function deriveCtxFromPath(pluginRoot, cacheDir) {
         const [marketplace, plugin, version] = segments;
         if (!marketplace || !plugin || !version)
             return null;
-        return { root: pluginRoot, plugin, marketplace, version };
+        return { root: pluginRoot, plugin, marketplace, version, installPath: pluginRoot };
     }
     if (segments.length === 4 && segments[1]?.startsWith('@')) {
         const [marketplace, scope, pluginName, version] = segments;
         if (!marketplace || !scope || !pluginName || !version)
             return null;
-        return { root: pluginRoot, plugin: `${scope}/${pluginName}`, marketplace, version };
+        return {
+            root: pluginRoot,
+            plugin: `${scope}/${pluginName}`,
+            marketplace,
+            version,
+            installPath: pluginRoot,
+        };
     }
     return null;
 }

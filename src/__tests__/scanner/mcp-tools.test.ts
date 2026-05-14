@@ -209,6 +209,9 @@ describe('scanMcpTools', () => {
       expect(mcpSearch!.metadata.plugin).toBe('claude-mem');
       expect(mcpSearch!.metadata.marketplace).toBe('thedotmack');
       expect(mcpSearch!.metadata.version).toBe('10.6.2');
+      // v0.5.0 — installPath non-null (Plan v1.1 AK A-0-2 + D-9).
+      expect(typeof mcpSearch!.metadata.installPath).toBe('string');
+      expect(mcpSearch!.metadata.installPath).toBe(claudemem);
     });
 
     it('scans Plugin-MCPs from plugin.json → mcpServers (alternative declaration)', async () => {

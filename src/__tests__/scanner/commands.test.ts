@@ -123,6 +123,9 @@ Rubocop fixer content.`,
       expect(setup!.metadata.plugin).toBe('claude-hud');
       expect(setup!.metadata.marketplace).toBe('claude-hud');
       expect(setup!.metadata.version).toBe('0.0.12');
+      // v0.5.0 — installPath non-null (Plan v1.1 AK A-0-2 + D-9).
+      expect(typeof setup!.metadata.installPath).toBe('string');
+      expect(setup!.metadata.installPath).toBe(claudehud);
     });
 
     it('assigns scope "global" (plugin-scope marked via metadata, not Scope-enum)', async () => {

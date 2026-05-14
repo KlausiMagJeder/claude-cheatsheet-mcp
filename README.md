@@ -4,7 +4,7 @@ A Claude Code plugin that catalogs every installed skill, command, agent, hook, 
 
 [![CI](https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/KlausiMagJeder/claude-cheatsheet-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](./package.json)
 
 ## Install
 
@@ -58,12 +58,14 @@ claude-cheatsheet scans your full Claude Code environment and exposes the result
 
 | What you get | How you use it |
 |--------------|----------------|
-| **13 MCP tools** | Query the catalog from inside Claude Code (`list_skills`, `search`, `suggest`, …) |
+| **14 MCP tools** | Query the catalog from inside Claude Code (`list_skills`, `search`, `suggest`, …) |
 | **Plugin skill `cheatsheet`** | Auto-triggers on discovery questions ("what skills do I have?", "is there a tool for X?") and routes to the right catalog tool |
 | **Slash commands** | `/cheatsheet`, `/cs-search`, `/cs-suggest`, `/cs-stats` — deterministic, tab-completable power-user entry points |
 | **Web dashboard** | Browse the same catalog in your browser at `http://127.0.0.1:37778` |
 | **Auto-tagging** | Keyword-based tags so related entries surface together |
 | **Plugin discovery** | Empirically verified across 4 plugin layouts plus `installed_plugins.json` |
+| **Favorites & history** | Star entries in the dashboard, see recently opened ones — persisted locally |
+| **Light + dark mode** | Theme toggle in the dashboard, persisted per browser |
 
 Everything is local. The server binds to loopback only, no data leaves your machine.
 
@@ -75,7 +77,7 @@ Once installed, `cheatsheet` is available as an MCP server in any Claude Code se
 
 ### MCP tools
 
-The plugin registers 13 tools. Common entry points:
+The plugin registers 14 tools. Common entry points:
 
 ```typescript
 // Aggregate counts across all categories
@@ -159,7 +161,7 @@ src/
   types.ts              # Shared types
   scanner/              # 7 scanners + orchestrator
   tagger/               # Keyword-based tagging
-  tools/                # 13 MCP tool implementations
+  tools/                # 14 MCP tool implementations
   web/                  # HTTP server + vanilla dashboard
   static/               # CLI built-ins, workflows, tag overrides
 dist/                   # Build output (tracked since v0.3.2)
@@ -195,7 +197,7 @@ npm run build
 npm test
 ```
 
-The full suite runs 156 tests (Jest). Additional scripts:
+The full suite runs 176 tests (Jest). Additional scripts:
 
 ```bash
 npm run lint          # ESLint v9 flat config
